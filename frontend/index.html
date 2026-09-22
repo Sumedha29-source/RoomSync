@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RoomSync</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>RoomSync</h1>
+        <p>Smart Classroom Availability System</p>
+    </header>
+
+    <main>
+
+        <section class="search-box">
+
+            <h2>Find an Available Room</h2>
+
+            <label for="day">Select Day</label>
+            <select id="day">
+                <option value="">Select Day</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+            </select>
+
+            <label for="startTime">Start Time</label>
+            <input type="time" id="startTime">
+
+            <label for="endTime">End Time</label>
+            <input type="time" id="endTime">
+
+            <button id="searchButton">
+                Find Available Rooms
+            </button>
+
+        </section>
+
+
+        <section class="results">
+
+            <h2>Available Rooms</h2>
+
+            <div id="roomResults">
+                <p>Select a day and time to search for rooms.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
