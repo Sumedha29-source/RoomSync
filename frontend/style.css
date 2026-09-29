@@ -1,3 +1,7 @@
+/* =========================================
+   GENERAL PAGE
+   ========================================= */
+
 * {
     box-sizing: border-box;
 }
@@ -6,12 +10,33 @@ body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #f4f6f8;
+    color: #222;
 }
+
+
+/* =========================================
+   HEADER
+   ========================================= */
 
 header {
     text-align: center;
-    padding: 30px;
+    padding: 35px 20px 25px;
 }
+
+header h1 {
+    margin: 0;
+    font-size: 36px;
+}
+
+header p {
+    margin-top: 8px;
+    color: #666;
+}
+
+
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
 
 main {
     width: 90%;
@@ -19,32 +44,174 @@ main {
     margin: auto;
 }
 
+
+/* =========================================
+   SEARCH AND RESULTS BOXES
+   ========================================= */
+
 .search-box,
 .results {
     background-color: white;
     padding: 25px;
     margin-bottom: 20px;
     border-radius: 10px;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
+.search-box h2,
+.results h2 {
+    margin-top: 0;
+}
+
+
+/* =========================================
+   FORM
+   ========================================= */
 
 label {
     display: block;
     margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 select,
 input {
     width: 100%;
-    padding: 10px;
-    margin-top: 5px;
+    padding: 11px;
+
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    font-size: 15px;
+    background-color: white;
 }
 
+select:focus,
+input:focus {
+    outline: none;
+    border-color: #555;
+}
+
+
+/* =========================================
+   SEARCH BUTTON
+   ========================================= */
+
 button {
-    margin-top: 20px;
+    width: 100%;
+
+    margin-top: 22px;
     padding: 12px 20px;
+
+    border: none;
+    border-radius: 6px;
+
+    background-color: #222;
+    color: white;
+
+    font-size: 15px;
+    font-weight: bold;
+
     cursor: pointer;
 }
 
+button:hover {
+    background-color: #444;
+}
+
+
+/* =========================================
+   RESULTS
+   ========================================= */
+
 .results {
     margin-top: 25px;
+}
+
+#roomResults {
+    margin-top: 15px;
+}
+
+
+/* =========================================
+   AVAILABLE ROOM CARD
+   ========================================= */
+
+.room-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    padding: 18px;
+    margin-bottom: 12px;
+
+    background-color: #fafafa;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+}
+
+.room-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.room-card h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.room-card p {
+    margin: 6px 0;
+}
+
+
+/* =========================================
+   AVAILABLE STATUS
+   ========================================= */
+
+.available-status {
+    display: inline-block;
+
+    margin-top: 10px !important;
+
+    padding: 5px 10px;
+
+    border-radius: 5px;
+
+    background-color: #e7f6ea;
+    color: #247a37;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+    header {
+        padding-top: 25px;
+    }
+
+    header h1 {
+        font-size: 30px;
+    }
+
+    main {
+        width: 94%;
+    }
+
+    .search-box,
+    .results {
+        padding: 20px;
+    }
 }

@@ -283,7 +283,7 @@ int main()
            GET /rooms
 
            Returns all rooms and their
-           CURRENT database status.
+           current physical database status.
            ===================================== */
 
         else if (
@@ -323,6 +323,151 @@ int main()
 
         /* =====================================
            ROUTE 3
+
+           STUDENT AVAILABLE ROOM SEARCH
+
+           Example:
+
+           GET /available-rooms?
+           day=Monday&
+           start=10:00&
+           end=11:00
+
+           Actual URL:
+
+           /available-rooms?day=Monday&start=10:00&end=11:00
+
+           This checks BOTH:
+
+           1. Timetable/routine
+           2. Floor Manager physical status
+           ===================================== */
+
+        else if (
+            strncmp(
+                request,
+                "GET /available-rooms?",
+                21
+            ) == 0
+        )
+        {
+            char day[20];
+
+            char startTime[10];
+
+            char endTime[10];
+
+            char roomsJSON[4096];
+
+
+            /*
+                Read the day, start time
+                and end time from the URL.
+            */
+
+            if (
+                sscanf(
+                    request,
+
+                    "GET /available-rooms?"
+                    "day=%19[^&]"
+                    "&start=%9[^&]"
+                    "&end=%9s",
+
+                    day,
+                    startTime,
+                    endTime
+                ) == 3
+            )
+            {
+                char *space;
+
+
+                /*
+                    The end time may contain:
+
+                    11:00 HTTP/1.1
+
+                    We only want:
+
+                    11:00
+                */
+
+                space = strchr(
+                    endTime,
+                    ' '
+                );
+
+
+                if (space != NULL)
+                {
+                    *space = '\0';
+                }
+
+
+                printf(
+                    "\nStudent Room Search\n"
+                );
+
+                printf(
+                    "Day: %s\n",
+                    day
+                );
+
+                printf(
+                    "Start Time: %s\n",
+                    startTime
+                );
+
+                printf(
+                    "End Time: %s\n",
+                    endTime
+                );
+
+
+                /*
+                    Search SQLite for rooms
+                    that are genuinely available.
+                */
+
+                if (
+                    getAvailableRoomsJSON(
+                        db,
+                        day,
+                        startTime,
+                        endTime,
+                        roomsJSON,
+                        sizeof(roomsJSON)
+                    )
+                )
+                {
+                    sendResponse(
+                        clientSocket,
+                        roomsJSON
+                    );
+                }
+
+                else
+                {
+                    sendResponse(
+                        clientSocket,
+                        "[]"
+                    );
+                }
+            }
+
+            else
+            {
+                sendResponse(
+                    clientSocket,
+                    "Invalid room search request."
+                );
+            }
+        }
+
+
+        /* =====================================
+           ROUTE 4
 
            FLOOR MANAGER STATUS UPDATE
 
@@ -378,9 +523,6 @@ int main()
                     We only want:
 
                     OCCUPIED
-
-                    So remove everything
-                    after the first space.
                 */
 
                 space = strchr(

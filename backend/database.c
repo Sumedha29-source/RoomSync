@@ -345,3 +345,160 @@ int getAllRoomsJSON(
 
     return 1;
 }
+
+int getAvailableRoomsJSON(
+    sqlite3 *db,
+    const char *day,
+    const char *startTime,
+    const char *endTime,
+    char *output,
+    int outputSize
+)
+{
+    sqlite3_stmt *statement;
+
+    const char *sql =
+        "SELECT room_number, floor, capacity "
+        "FROM rooms "
+        "WHERE status = 'EMPTY' "
+        "AND room_id NOT IN ("
+            "SELECT room_id "
+            "FROM routines "
+            "WHERE day = ? "
+            "AND start_time < ? "
+            "AND end_time > ?"
+        ") "
+        "ORDER BY floor, room_number;";
+
+    int result;
+    int firstRoom = 1;
+    int used = 0;
+
+
+    /* Prepare SQL query */
+
+    result = sqlite3_prepare_v2(
+        db,
+        sql,
+        -1,
+        &statement,
+        NULL
+    );
+
+
+    if (result != SQLITE_OK)
+    {
+        printf(
+            "Could not search rooms: %s\n",
+            sqlite3_errmsg(db)
+        );
+
+        return 0;
+    }
+
+
+    /*
+        Replace the ? values:
+
+        day = ?
+        start_time < requested END
+        end_time > requested START
+    */
+
+    sqlite3_bind_text(
+        statement,
+        1,
+        day,
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+
+    sqlite3_bind_text(
+        statement,
+        2,
+        endTime,
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+
+    sqlite3_bind_text(
+        statement,
+        3,
+        startTime,
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+
+    /* Start JSON array */
+
+    used += snprintf(
+        output + used,
+        outputSize - used,
+        "["
+    );
+
+
+    /* Read available rooms */
+
+    while (sqlite3_step(statement) == SQLITE_ROW)
+    {
+        const unsigned char *roomNumber =
+            sqlite3_column_text(statement, 0);
+
+        int floor =
+            sqlite3_column_int(statement, 1);
+
+        int capacity =
+            sqlite3_column_int(statement, 2);
+
+
+        if (!firstRoom)
+        {
+            used += snprintf(
+                output + used,
+                outputSize - used,
+                ","
+            );
+        }
+
+
+        used += snprintf(
+            output + used,
+            outputSize - used,
+
+            "{\"room_number\":\"%s\","
+            "\"floor\":%d,"
+            "\"capacity\":%d}",
+
+            roomNumber,
+            floor,
+            capacity
+        );
+
+
+        firstRoom = 0;
+
+
+        if (used >= outputSize - 100)
+        {
+            break;
+        }
+    }
+
+
+    /* Close JSON array */
+
+    snprintf(
+        output + used,
+        outputSize - used,
+        "]"
+    );
+
+
+    sqlite3_finalize(statement);
+
+    return 1;
+}
