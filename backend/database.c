@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
-#include "sqlite3.h"
+#include "database.h"
 
 /*
-    This callback function prints every available room
-    returned by SQLite.
+    Callback function used by SQLite.
+    It prints each available room returned by the query.
 */
-int displayAvailableRoom(
+static int displayAvailableRoom(
     void *data,
     int columnCount,
     char **columnValues,
@@ -17,9 +17,11 @@ int displayAvailableRoom(
 
     for (i = 0; i < columnCount; i++)
     {
-        printf("%s: %s\n",
-               columnNames[i],
-               columnValues[i] ? columnValues[i] : "NULL");
+        printf(
+            "%s: %s\n",
+            columnNames[i],
+            columnValues[i] ? columnValues[i] : "NULL"
+        );
     }
 
     printf("-------------------------\n");
@@ -28,66 +30,63 @@ int displayAvailableRoom(
 }
 
 
-int main()
+/*
+    Opens the RoomSync database.
+*/
+sqlite3 *openDatabase()
 {
     sqlite3 *db;
-
-    char *errorMessage = NULL;
-
     int result;
 
-    char day[20];
-    char startTime[10];
-    char endTime[10];
-
-    char sql[1000];
-
-
-    /* -----------------------------------------
-       STEP 1: Open RoomSync database
-       ----------------------------------------- */
-
-    result = sqlite3_open("database/roomsync.db", &db);
+    result = sqlite3_open(
+        "database/roomsync.db",
+        &db
+    );
 
     if (result != SQLITE_OK)
     {
-        printf("Error opening database: %s\n",
-               sqlite3_errmsg(db));
+        printf(
+            "Error opening database: %s\n",
+            sqlite3_errmsg(db)
+        );
 
         sqlite3_close(db);
 
-        return 1;
+        return NULL;
     }
 
-    printf("Database connected successfully!\n\n");
+    return db;
+}
 
 
-    /* -----------------------------------------
-       STEP 2: Get search details from user
-       ----------------------------------------- */
-
-    printf("Enter day: ");
-    scanf("%19s", day);
-
-    printf("Enter start time (HH:MM): ");
-    scanf("%9s", startTime);
-
-    printf("Enter end time (HH:MM): ");
-    scanf("%9s", endTime);
+/*
+    Closes the RoomSync database.
+*/
+void closeDatabase(sqlite3 *db)
+{
+    if (db != NULL)
+    {
+        sqlite3_close(db);
+    }
+}
 
 
-    /* -----------------------------------------
-       STEP 3: Create SQL query
+/*
+    Finds rooms that:
+    1. Have no timetable conflict
+    2. Are marked EMPTY by the Floor Manager
+*/
+void findAvailableRooms(
+    sqlite3 *db,
+    const char *day,
+    const char *startTime,
+    const char *endTime
+)
+{
+    char sql[1000];
+    char *errorMessage = NULL;
 
-       A room is available when:
-
-       1. Floor Manager status = EMPTY
-
-       AND
-
-       2. There is NO routine that overlaps
-          with the requested time.
-       ----------------------------------------- */
+    int result;
 
     snprintf(
         sql,
@@ -109,11 +108,6 @@ int main()
         startTime
     );
 
-
-    /* -----------------------------------------
-       STEP 4: Execute search
-       ----------------------------------------- */
-
     printf("\nAvailable Rooms\n");
     printf("=========================\n");
 
@@ -125,25 +119,229 @@ int main()
         &errorMessage
     );
 
-
-    /* -----------------------------------------
-       STEP 5: Check for SQL errors
-       ----------------------------------------- */
-
     if (result != SQLITE_OK)
     {
-        printf("SQL Error: %s\n",
-               errorMessage);
+        printf(
+            "SQL Error: %s\n",
+            errorMessage
+        );
 
         sqlite3_free(errorMessage);
     }
+}
+
+int updateRoomStatus(
+    sqlite3 *db,
+    const char *roomNumber,
+    const char *status
+)
+{
+    sqlite3_stmt *statement;
+
+    const char *sql =
+        "UPDATE rooms "
+        "SET status = ?, "
+        "status_updated_at = datetime('now') "
+        "WHERE room_number = ?;";
+
+    int result;
 
 
-    /* -----------------------------------------
-       STEP 6: Close database
-       ----------------------------------------- */
+    /* Only allow valid statuses */
+    if (
+        strcmp(status, "EMPTY") != 0 &&
+        strcmp(status, "OCCUPIED") != 0
+    )
+    {
+        printf("Invalid room status.\n");
+        return 0;
+    }
 
-    sqlite3_close(db);
 
-    return 0;
+    /* Prepare SQL statement */
+    result = sqlite3_prepare_v2(
+        db,
+        sql,
+        -1,
+        &statement,
+        NULL
+    );
+
+    if (result != SQLITE_OK)
+    {
+        printf(
+            "SQL preparation error: %s\n",
+            sqlite3_errmsg(db)
+        );
+
+        return 0;
+    }
+
+
+    /* Replace first ? with status */
+    sqlite3_bind_text(
+        statement,
+        1,
+        status,
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+
+    /* Replace second ? with room number */
+    sqlite3_bind_text(
+        statement,
+        2,
+        roomNumber,
+        -1,
+        SQLITE_TRANSIENT
+    );
+
+
+    /* Execute UPDATE */
+    result = sqlite3_step(statement);
+
+    if (result != SQLITE_DONE)
+    {
+        printf(
+            "Room status update failed: %s\n",
+            sqlite3_errmsg(db)
+        );
+
+        sqlite3_finalize(statement);
+
+        return 0;
+    }
+
+
+    /*
+        Check whether a room was actually found.
+    */
+    if (sqlite3_changes(db) == 0)
+    {
+        printf("Room %s was not found.\n", roomNumber);
+
+        sqlite3_finalize(statement);
+
+        return 0;
+    }
+
+
+    printf(
+        "Room %s status updated to %s.\n",
+        roomNumber,
+        status
+    );
+
+
+    sqlite3_finalize(statement);
+
+    return 1;
+}
+
+int getAllRoomsJSON(
+    sqlite3 *db,
+    char *output,
+    int outputSize
+)
+{
+    sqlite3_stmt *statement;
+
+    const char *sql =
+        "SELECT room_number, floor, capacity, status "
+        "FROM rooms "
+        "ORDER BY floor, room_number;";
+
+    int result;
+    int firstRoom = 1;
+
+    int used = 0;
+
+    result = sqlite3_prepare_v2(
+        db,
+        sql,
+        -1,
+        &statement,
+        NULL
+    );
+
+    if (result != SQLITE_OK)
+    {
+        printf(
+            "Could not read rooms: %s\n",
+            sqlite3_errmsg(db)
+        );
+
+        return 0;
+    }
+
+
+    used += snprintf(
+        output + used,
+        outputSize - used,
+        "["
+    );
+
+
+    while (sqlite3_step(statement) == SQLITE_ROW)
+    {
+        const unsigned char *roomNumber =
+            sqlite3_column_text(statement, 0);
+
+        int floor =
+            sqlite3_column_int(statement, 1);
+
+        int capacity =
+            sqlite3_column_int(statement, 2);
+
+        const unsigned char *status =
+            sqlite3_column_text(statement, 3);
+
+
+        if (!firstRoom)
+        {
+            used += snprintf(
+                output + used,
+                outputSize - used,
+                ","
+            );
+        }
+
+
+        used += snprintf(
+            output + used,
+            outputSize - used,
+
+            "{\"room_number\":\"%s\","
+            "\"floor\":%d,"
+            "\"capacity\":%d,"
+            "\"status\":\"%s\"}",
+
+            roomNumber,
+            floor,
+            capacity,
+            status
+        );
+
+
+        firstRoom = 0;
+
+
+        if (used >= outputSize - 100)
+        {
+            break;
+        }
+    }
+
+
+    snprintf(
+        output + used,
+        outputSize - used,
+        "]"
+    );
+
+
+    sqlite3_finalize(statement);
+
+    return 1;
 }

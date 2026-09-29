@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RoomSync - Floor Manager</title>
+
+    <link rel="stylesheet" href="manager.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>RoomSync</h1>
+        <p>Floor Manager Dashboard</p>
+    </header>
+
+    <main>
+
+        <section class="floor-section">
+
+            <h2>Floor 1</h2>
+
+            <div class="room-card">
+
+                <div>
+                    <h3>Room 101</h3>
+                    <p>Status: <span id="status-101">EMPTY</span></p>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="updateStatus('101', 'EMPTY')">
+                        Empty
+                    </button>
+
+                    <button onclick="updateStatus('101', 'OCCUPIED')">
+                        Occupied
+                    </button>
+                </div>
+
+            </div>
+
+
+            <div class="room-card">
+
+                <div>
+                    <h3>Room 102</h3>
+                    <p>Status: <span id="status-102">EMPTY</span></p>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="updateStatus('102', 'EMPTY')">
+                        Empty
+                    </button>
+
+                    <button onclick="updateStatus('102', 'OCCUPIED')">
+                        Occupied
+                    </button>
+                </div>
+
+            </div>
+
+
+            <div class="room-card">
+
+                <div>
+                    <h3>Room 103</h3>
+                    <p>Status: <span id="status-103">EMPTY</span></p>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="updateStatus('103', 'EMPTY')">
+                        Empty
+                    </button>
+
+                    <button onclick="updateStatus('103', 'OCCUPIED')">
+                        Occupied
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="floor-section">
+
+            <h2>Floor 2</h2>
+
+            <div class="room-card">
+
+                <div>
+                    <h3>Room 201</h3>
+                    <p>Status: <span id="status-201">EMPTY</span></p>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="updateStatus('201', 'EMPTY')">
+                        Empty
+                    </button>
+
+                    <button onclick="updateStatus('201', 'OCCUPIED')">
+                        Occupied
+                    </button>
+                </div>
+
+            </div>
+
+
+            <div class="room-card">
+
+                <div>
+                    <h3>Room 202</h3>
+                    <p>Status: <span id="status-202">EMPTY</span></p>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="updateStatus('202', 'EMPTY')">
+                        Empty
+                    </button>
+
+                    <button onclick="updateStatus('202', 'OCCUPIED')">
+                        Occupied
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="manager.js"></script>
+
+</body>
+
+</html>
