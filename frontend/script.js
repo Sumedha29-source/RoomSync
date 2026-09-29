@@ -1,28 +1,33 @@
 /*
-    RoomSync Student Search
+    RoomSync
+    Student Classroom Search
 
-    This file sends the student's selected
-    day and time to the C backend.
+    Frontend:
+    HTML + CSS + JavaScript
 
-    The C backend checks:
-
-    1. Timetable / routine
-    2. Floor Manager physical room status
-
-    Only genuinely available rooms are returned.
+    Backend:
+    C + SQLite
 */
 
 
 const searchButton =
     document.getElementById("searchButton");
 
+const roomResults =
+    document.getElementById("roomResults");
+
+const resultCount =
+    document.getElementById("resultCount");
+
+
+/* =========================================
+   SEARCH BUTTON
+   ========================================= */
 
 searchButton.addEventListener(
     "click",
     function ()
     {
-        /* Get values entered by the student */
-
         const day =
             document.getElementById("day").value;
 
@@ -31,9 +36,6 @@ searchButton.addEventListener(
 
         const endTime =
             document.getElementById("endTime").value;
-
-        const roomResults =
-            document.getElementById("roomResults");
 
 
         /* =====================================
@@ -54,11 +56,6 @@ searchButton.addEventListener(
         }
 
 
-        /*
-            End time must be later
-            than start time.
-        */
-
         if (endTime <= startTime)
         {
             alert(
@@ -69,45 +66,69 @@ searchButton.addEventListener(
         }
 
 
-        /* Show temporary message */
+        /* =====================================
+           LOADING STATE
+           ===================================== */
 
-        roomResults.innerHTML =
-            "<p>Searching for available rooms...</p>";
+        resultCount.classList.add(
+            "hidden"
+        );
+
+
+        roomResults.className = "";
+
+
+        roomResults.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ...
+                </div>
+
+                <h3>
+                    Checking classrooms
+                </h3>
+
+                <p>
+                    Comparing the college routine
+                    with current room occupancy.
+                </p>
+
+            </div>
+        `;
 
 
         /* =====================================
-           CREATE BACKEND URL
+           BUILD API URL
            ===================================== */
 
         const url =
             "http://localhost:8080/available-rooms" +
             "?day=" +
             encodeURIComponent(day) +
+
             "&start=" +
             encodeURIComponent(startTime) +
+
             "&end=" +
             encodeURIComponent(endTime);
 
 
-        console.log(
-            "Searching:",
-            url
-        );
-
-
         /* =====================================
-           SEND REQUEST TO C SERVER
+           CONTACT C SERVER
            ===================================== */
 
         fetch(url)
 
             .then(function (response)
             {
-                /*
-                    Convert the JSON returned
-                    by the C server into a
-                    JavaScript array.
-                */
+                if (!response.ok)
+                {
+                    throw new Error(
+                        "Server returned an error."
+                    );
+                }
+
 
                 return response.json();
             })
@@ -115,71 +136,7 @@ searchButton.addEventListener(
 
             .then(function (rooms)
             {
-                console.log(
-                    "Available rooms:",
-                    rooms
-                );
-
-
-                /* Clear searching message */
-
-                roomResults.innerHTML = "";
-
-
-                /* =================================
-                   NO ROOMS AVAILABLE
-                   ================================= */
-
-                if (rooms.length === 0)
-                {
-                    roomResults.innerHTML =
-                        "<p>No rooms are available for this time.</p>";
-
-                    return;
-                }
-
-
-                /* =================================
-                   DISPLAY AVAILABLE ROOMS
-                   ================================= */
-
-                rooms.forEach(function (room)
-                {
-                    /*
-                        Create one card for
-                        each available room.
-                    */
-
-                    const roomCard =
-                        document.createElement("div");
-
-
-                    roomCard.className =
-                        "room-card";
-
-
-                    roomCard.innerHTML =
-                        "<h3>Room " +
-                        room.room_number +
-                        "</h3>" +
-
-                        "<p>Floor: " +
-                        room.floor +
-                        "</p>" +
-
-                        "<p>Capacity: " +
-                        room.capacity +
-                        "</p>" +
-
-                        "<p class='available-status'>" +
-                        "Available" +
-                        "</p>";
-
-
-                    roomResults.appendChild(
-                        roomCard
-                    );
-                });
+                displayRooms(rooms);
             })
 
 
@@ -191,13 +148,180 @@ searchButton.addEventListener(
                 );
 
 
-                roomResults.innerHTML =
-                    "<p>Could not connect to the RoomSync server.</p>";
-
-
-                alert(
-                    "Could not connect to RoomSync server. Make sure server.exe is running."
+                resultCount.classList.add(
+                    "hidden"
                 );
+
+
+                roomResults.className = "";
+
+
+                roomResults.innerHTML = `
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            !
+                        </div>
+
+                        <h3>
+                            Server unavailable
+                        </h3>
+
+                        <p>
+                            RoomSync could not connect
+                            to the C server. Make sure
+                            server.exe is running.
+                        </p>
+
+                    </div>
+                `;
             });
     }
 );
+
+
+
+/* =========================================
+   DISPLAY AVAILABLE ROOMS
+   ========================================= */
+
+function displayRooms(rooms)
+{
+    roomResults.innerHTML = "";
+
+
+    /* =====================================
+       NO AVAILABLE ROOMS
+       ===================================== */
+
+    if (rooms.length === 0)
+    {
+        roomResults.className = "";
+
+
+        resultCount.textContent =
+            "0 rooms";
+
+
+        resultCount.classList.remove(
+            "hidden"
+        );
+
+
+        roomResults.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    0
+                </div>
+
+                <h3>
+                    No rooms available
+                </h3>
+
+                <p>
+                    No classroom is currently
+                    available for the selected
+                    time slot.
+                </p>
+
+            </div>
+        `;
+
+
+        return;
+    }
+
+
+    /* =====================================
+       RESULT COUNT
+       ===================================== */
+
+    if (rooms.length === 1)
+    {
+        resultCount.textContent =
+            "1 room";
+    }
+
+    else
+    {
+        resultCount.textContent =
+            rooms.length + " rooms";
+    }
+
+
+    resultCount.classList.remove(
+        "hidden"
+    );
+
+
+    /* =====================================
+       ROOM GRID
+       ===================================== */
+
+    roomResults.className =
+        "room-grid";
+
+
+    rooms.forEach(function (room)
+    {
+        const roomCard =
+            document.createElement("div");
+
+
+        roomCard.className =
+            "room-card";
+
+
+        roomCard.innerHTML = `
+
+            <div class="room-status">
+
+                <span class="status-dot"></span>
+
+                AVAILABLE
+
+            </div>
+
+
+            <h3>
+                Room ${room.room_number}
+            </h3>
+
+
+            <div class="room-details">
+
+                <div class="room-detail">
+
+                    <span>
+                        Floor
+                    </span>
+
+                    <strong>
+                        ${room.floor}
+                    </strong>
+
+                </div>
+
+
+                <div class="room-detail">
+
+                    <span>
+                        Capacity
+                    </span>
+
+                    <strong>
+                        ${room.capacity}
+                    </strong>
+
+                </div>
+
+            </div>
+        `;
+
+
+        roomResults.appendChild(
+            roomCard
+        );
+    });
+}

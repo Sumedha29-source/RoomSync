@@ -3,61 +3,293 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RoomSync</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <title>RoomSync | Classroom Availability</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
-    <header>
-        <h1>RoomSync</h1>
-        <p>Smart Classroom Availability System</p>
-    </header>
+    <!-- =====================================
+         NAVBAR
+         ===================================== -->
 
-    <main>
+    <nav class="navbar">
 
-        <section class="search-box">
+        <div class="nav-container">
 
-            <h2>Find an Available Room</h2>
+            <div class="brand">
+                <div class="brand-icon">
+                    R
+                </div>
 
-            <label for="day">Select Day</label>
-            <select id="day">
-                <option value="">Select Day</option>
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-            </select>
+                <div>
+                    <h1>RoomSync</h1>
+                    <p>Classroom Availability</p>
+                </div>
+            </div>
 
-            <label for="startTime">Start Time</label>
-            <input type="time" id="startTime">
 
-            <label for="endTime">End Time</label>
-            <input type="time" id="endTime">
+            <div class="nav-links">
 
-            <button id="searchButton">
-                Find Available Rooms
+                <a
+                    href="index.html"
+                    class="active"
+                >
+                    Find Rooms
+                </a>
+
+                <a
+                    href="floor-manager/manager.html"
+                >
+                    Floor Manager
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- =====================================
+         HERO
+         ===================================== -->
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <div class="hero-badge">
+                SMART CAMPUS
+            </div>
+
+            <h2>
+                Find the right classroom,
+                <span>right when you need it.</span>
+            </h2>
+
+            <p>
+                RoomSync checks college routines and
+                real-time room occupancy to show
+                classrooms that are actually available.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         MAIN CONTENT
+         ===================================== -->
+
+    <main class="main-container">
+
+
+        <!-- SEARCH PANEL -->
+
+        <section class="search-panel">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="section-label">
+                        ROOM SEARCH
+                    </p>
+
+                    <h2>
+                        Find an available classroom
+                    </h2>
+
+                    <p class="section-description">
+                        Choose the day and required time slot.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="search-grid">
+
+
+                <!-- DAY -->
+
+                <div class="form-group">
+
+                    <label for="day">
+                        Day
+                    </label>
+
+                    <select id="day">
+
+                        <option value="">
+                            Select a day
+                        </option>
+
+                        <option value="Monday">
+                            Monday
+                        </option>
+
+                        <option value="Tuesday">
+                            Tuesday
+                        </option>
+
+                        <option value="Wednesday">
+                            Wednesday
+                        </option>
+
+                        <option value="Thursday">
+                            Thursday
+                        </option>
+
+                        <option value="Friday">
+                            Friday
+                        </option>
+
+                        <option value="Saturday">
+                            Saturday
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- START TIME -->
+
+                <div class="form-group">
+
+                    <label for="startTime">
+                        Start Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="startTime"
+                    >
+
+                </div>
+
+
+
+                <!-- END TIME -->
+
+                <div class="form-group">
+
+                    <label for="endTime">
+                        End Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="endTime"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="searchButton"
+                class="search-button"
+            >
+                <span>Find Available Rooms</span>
+
+                <span class="button-arrow">
+                    →
+                </span>
             </button>
 
         </section>
 
 
-        <section class="results">
 
-            <h2>Available Rooms</h2>
+        <!-- =====================================
+             RESULTS
+             ===================================== -->
+
+        <section class="results-section">
+
+            <div class="results-header">
+
+                <div>
+
+                    <p class="section-label">
+                        SEARCH RESULTS
+                    </p>
+
+                    <h2>
+                        Available Rooms
+                    </h2>
+
+                </div>
+
+
+                <div
+                    id="resultCount"
+                    class="result-count hidden"
+                >
+                    0 rooms
+                </div>
+
+            </div>
+
 
             <div id="roomResults">
-                <p>Select a day and time to search for rooms.</p>
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        R
+                    </div>
+
+                    <h3>
+                        Ready to search
+                    </h3>
+
+                    <p>
+                        Select a day and time above to
+                        check classroom availability.
+                    </p>
+
+                </div>
+
             </div>
 
         </section>
 
+
     </main>
+
+
+
+    <!-- =====================================
+         FOOTER
+         ===================================== -->
+
+    <footer>
+
+        <p>
+            RoomSync • Smart Classroom Availability System
+        </p>
+
+    </footer>
+
+
 
     <script src="script.js"></script>
 

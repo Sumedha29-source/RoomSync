@@ -3,81 +3,163 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RoomSync - Floor Manager</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="manager.css">
+    <title>RoomSync | Floor Manager</title>
+
+    <link
+        rel="stylesheet"
+        href="manager.css"
+    >
 </head>
 
 <body>
 
-    <header>
-        <h1>RoomSync</h1>
-        <p>Floor Manager Dashboard</p>
+    <!-- =====================================
+         NAVBAR
+         ===================================== -->
+
+    <nav class="navbar">
+
+        <div class="nav-container">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    R
+                </div>
+
+                <div>
+                    <h1>RoomSync</h1>
+                    <p>Classroom Availability</p>
+                </div>
+
+            </div>
+
+
+            <div class="nav-links">
+
+                <a href="../index.html">
+                    Find Rooms
+                </a>
+
+                <a
+                    href="manager.html"
+                    class="active"
+                >
+                    Floor Manager
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- =====================================
+         PAGE HEADER
+         ===================================== -->
+
+    <header class="page-header">
+
+        <div class="header-content">
+
+            <div>
+
+                <p class="page-label">
+                    FLOOR MANAGEMENT
+                </p>
+
+                <h2>
+                    Classroom Status Dashboard
+                </h2>
+
+                <p class="header-description">
+                    Update the physical occupancy status of
+                    classrooms to keep RoomSync availability accurate.
+                </p>
+
+            </div>
+
+
+            <button
+                id="refreshButton"
+                class="refresh-button"
+            >
+                Refresh Status
+            </button>
+
+        </div>
+
     </header>
 
-    <main>
 
-        <section class="floor-section">
 
-            <h2>Floor 1</h2>
+    <!-- =====================================
+         MAIN
+         ===================================== -->
 
-            <div class="room-card">
+    <main class="main-container">
 
-                <div>
-                    <h3>Room 101</h3>
-                    <p>Status: <span id="status-101">EMPTY</span></p>
+
+        <!-- =================================
+             STATISTICS
+             ================================= -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    R
                 </div>
 
-                <div class="buttons">
-                    <button onclick="updateStatus('101', 'EMPTY')">
-                        Empty
-                    </button>
+                <div>
+                    <p>Total Rooms</p>
 
-                    <button onclick="updateStatus('101', 'OCCUPIED')">
-                        Occupied
-                    </button>
+                    <h3 id="totalRooms">
+                        -
+                    </h3>
                 </div>
 
             </div>
 
 
-            <div class="room-card">
+            <div class="stat-card">
 
-                <div>
-                    <h3>Room 102</h3>
-                    <p>Status: <span id="status-102">EMPTY</span></p>
+                <div class="stat-icon empty-icon">
+                    E
                 </div>
 
-                <div class="buttons">
-                    <button onclick="updateStatus('102', 'EMPTY')">
-                        Empty
-                    </button>
+                <div>
+                    <p>Empty Rooms</p>
 
-                    <button onclick="updateStatus('102', 'OCCUPIED')">
-                        Occupied
-                    </button>
+                    <h3 id="emptyRooms">
+                        -
+                    </h3>
                 </div>
 
             </div>
 
 
-            <div class="room-card">
+            <div class="stat-card">
 
-                <div>
-                    <h3>Room 103</h3>
-                    <p>Status: <span id="status-103">EMPTY</span></p>
+                <div class="stat-icon occupied-icon">
+                    O
                 </div>
 
-                <div class="buttons">
-                    <button onclick="updateStatus('103', 'EMPTY')">
-                        Empty
-                    </button>
+                <div>
+                    <p>Occupied Rooms</p>
 
-                    <button onclick="updateStatus('103', 'OCCUPIED')">
-                        Occupied
-                    </button>
+                    <h3 id="occupiedRooms">
+                        -
+                    </h3>
                 </div>
 
             </div>
@@ -85,45 +167,66 @@
         </section>
 
 
-        <section class="floor-section">
 
-            <h2>Floor 2</h2>
+        <!-- =================================
+             ROOMS
+             ================================= -->
 
-            <div class="room-card">
+        <section class="rooms-section">
+
+            <div class="section-header">
 
                 <div>
-                    <h3>Room 201</h3>
-                    <p>Status: <span id="status-201">EMPTY</span></p>
+
+                    <p class="page-label">
+                        LIVE ROOM STATUS
+                    </p>
+
+                    <h2>
+                        Manage Classrooms
+                    </h2>
+
                 </div>
 
-                <div class="buttons">
-                    <button onclick="updateStatus('201', 'EMPTY')">
-                        Empty
-                    </button>
 
-                    <button onclick="updateStatus('201', 'OCCUPIED')">
-                        Occupied
-                    </button>
+                <div
+                    id="connectionStatus"
+                    class="connection-status"
+                >
+                    Loading...
                 </div>
 
             </div>
 
 
-            <div class="room-card">
+            <!--
+                JavaScript automatically creates:
 
-                <div>
-                    <h3>Room 202</h3>
-                    <p>Status: <span id="status-202">EMPTY</span></p>
-                </div>
+                Floor 1
+                Floor 2
+                Floor 3
+                ...
 
-                <div class="buttons">
-                    <button onclick="updateStatus('202', 'EMPTY')">
-                        Empty
-                    </button>
+                based entirely on SQLite.
+            -->
 
-                    <button onclick="updateStatus('202', 'OCCUPIED')">
-                        Occupied
-                    </button>
+            <div id="floorsContainer">
+
+                <div class="loading-state">
+
+                    <div class="loading-icon">
+                        ...
+                    </div>
+
+                    <h3>
+                        Loading classrooms
+                    </h3>
+
+                    <p>
+                        Reading the latest room information
+                        from RoomSync.
+                    </p>
+
                 </div>
 
             </div>
@@ -131,6 +234,21 @@
         </section>
 
     </main>
+
+
+
+    <!-- =====================================
+         FOOTER
+         ===================================== -->
+
+    <footer>
+
+        <p>
+            RoomSync • Floor Manager Dashboard
+        </p>
+
+    </footer>
+
 
     <script src="manager.js"></script>
 

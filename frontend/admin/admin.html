@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>RoomSync | Admin</title>
+
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+    <!-- =====================================
+         SIDEBAR
+         ===================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                R
+            </div>
+
+            <div>
+                <h1>RoomSync</h1>
+                <p>Administration</p>
+            </div>
+
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <button
+                class="nav-item active"
+                data-page="dashboard"
+            >
+                Dashboard
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="rooms"
+            >
+                Rooms
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="departments"
+            >
+                Departments
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="timetables"
+            >
+                Timetables
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="managers"
+            >
+                Floor Managers
+            </button>
+
+            <button
+                class="nav-item"
+                data-page="import"
+            >
+                Import Routine
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <a href="../index.html">
+                ← Student Website
+            </a>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================
+         MAIN AREA
+         ===================================== -->
+
+    <div class="app">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div>
+                <p class="top-label">
+                    ROOMSYNC ADMINISTRATION
+                </p>
+
+                <h2 id="pageTitle">
+                    Dashboard
+                </h2>
+            </div>
+
+
+            <div class="admin-profile">
+
+                <div class="admin-avatar">
+                    A
+                </div>
+
+                <div>
+                    <strong>Administrator</strong>
+                    <span>System Admin</span>
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================
+             DASHBOARD PAGE
+             ================================= -->
+
+        <main class="content">
+
+            <section
+                id="dashboardPage"
+                class="page active-page"
+            >
+
+                <div class="welcome-panel">
+
+                    <div>
+
+                        <p class="section-label">
+                            SYSTEM OVERVIEW
+                        </p>
+
+                        <h2>
+                            Welcome to RoomSync Admin
+                        </h2>
+
+                        <p>
+                            Manage classrooms, departments,
+                            routines and floor managers from
+                            one place.
+                        </p>
+
+                    </div>
+
+                    <div
+                        id="serverStatus"
+                        class="server-status"
+                    >
+                        Connecting...
+                    </div>
+
+                </div>
+
+
+
+                <!-- STATISTICS -->
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <span>Total Rooms</span>
+
+                            <div class="stat-symbol">
+                                R
+                            </div>
+                        </div>
+
+                        <h3 id="totalRooms">
+                            -
+                        </h3>
+
+                        <p>
+                            Registered classrooms
+                        </p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <span>Available</span>
+
+                            <div class="stat-symbol green">
+                                E
+                            </div>
+                        </div>
+
+                        <h3 id="emptyRooms">
+                            -
+                        </h3>
+
+                        <p>
+                            Physically empty rooms
+                        </p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <span>Occupied</span>
+
+                            <div class="stat-symbol red">
+                                O
+                            </div>
+                        </div>
+
+                        <h3 id="occupiedRooms">
+                            -
+                        </h3>
+
+                        <p>
+                            Currently occupied
+                        </p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <span>Floors</span>
+
+                            <div class="stat-symbol">
+                                F
+                            </div>
+                        </div>
+
+                        <h3 id="totalFloors">
+                            -
+                        </h3>
+
+                        <p>
+                            Floors in database
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- QUICK ACCESS -->
+
+                <section class="panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+                            <p class="section-label">
+                                MANAGEMENT
+                            </p>
+
+                            <h2>
+                                Quick Access
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div class="quick-grid">
+
+                        <button
+                            class="quick-card"
+                            onclick="openPage('rooms')"
+                        >
+                            <strong>
+                                Manage Rooms
+                            </strong>
+
+                            <span>
+                                Add, edit and remove classrooms
+                            </span>
+                        </button>
+
+
+                        <button
+                            class="quick-card"
+                            onclick="openPage('departments')"
+                        >
+                            <strong>
+                                Departments
+                            </strong>
+
+                            <span>
+                                Manage college departments
+                            </span>
+                        </button>
+
+
+                        <button
+                            class="quick-card"
+                            onclick="openPage('timetables')"
+                        >
+                            <strong>
+                                Timetables
+                            </strong>
+
+                            <span>
+                                Manage class schedules
+                            </span>
+                        </button>
+
+
+                        <button
+                            class="quick-card"
+                            onclick="openPage('managers')"
+                        >
+                            <strong>
+                                Floor Managers
+                            </strong>
+
+                            <span>
+                                Manage manager accounts
+                            </span>
+                        </button>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+
+
+            <!-- =================================
+                 ROOMS PAGE
+                 ================================= -->
+
+            <section
+                id="roomsPage"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <p class="section-label">
+                            CLASSROOM MANAGEMENT
+                        </p>
+
+                        <h2>
+                            Rooms
+                        </h2>
+
+                        <p>
+                            View all classrooms currently
+                            registered in RoomSync.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button"
+                        id="addRoomButton"
+                    >
+                        + Add Room
+                    </button>
+
+                </div>
+
+
+                <section class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Floor</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody id="roomsTableBody">
+
+                                <tr>
+
+                                    <td
+                                        colspan="5"
+                                        class="table-message"
+                                    >
+                                        Loading rooms...
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+
+
+            <!-- =================================
+                 PLACEHOLDER PAGES
+                 ================================= -->
+
+            <section
+                id="departmentsPage"
+                class="page"
+            >
+
+                <div class="placeholder">
+
+                    <span>DEPARTMENTS</span>
+
+                    <h2>
+                        Department Management
+                    </h2>
+
+                    <p>
+                        This module will manage the
+                        college departments used by
+                        RoomSync routines.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <section
+                id="timetablesPage"
+                class="page"
+            >
+
+                <div class="placeholder">
+
+                    <span>TIMETABLES</span>
+
+                    <h2>
+                        Timetable Management
+                    </h2>
+
+                    <p>
+                        This module will manage the
+                        complete college routine.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <section
+                id="managersPage"
+                class="page"
+            >
+
+                <div class="placeholder">
+
+                    <span>FLOOR MANAGERS</span>
+
+                    <h2>
+                        Floor Manager Accounts
+                    </h2>
+
+                    <p>
+                        This module will control
+                        Floor Manager access and
+                        floor assignments.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <section
+                id="importPage"
+                class="page"
+            >
+
+                <div class="placeholder">
+
+                    <span>ROUTINE IMPORT</span>
+
+                    <h2>
+                        Import College Routine
+                    </h2>
+
+                    <p>
+                        Timetable import will be added
+                        after we finalize the actual
+                        college timetable format.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <script src="admin.js"></script>
+
+</body>
+
+</html>
