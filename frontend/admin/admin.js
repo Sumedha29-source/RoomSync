@@ -1,22 +1,10 @@
-/*
-    RoomSync Admin Dashboard
 
-    Current functionality:
+/* =========================================
+   ROOMSYNC ADMIN DASHBOARD
+   Connected to C Backend + SQLite
+   ========================================= */
 
-    - Navigation
-    - Server connection status
-    - Room statistics
-    - Floor statistics
-    - View rooms from SQLite
-
-    Add/Edit/Delete functionality will be
-    connected to the C backend next.
-*/
-
-
-const API_BASE =
-    "http://localhost:8080";
-
+const API_BASE = "http://127.0.0.1:8080";
 
 let rooms = [];
 
@@ -29,68 +17,32 @@ const navigationButtons =
     document.querySelectorAll(".nav-item");
 
 
-navigationButtons.forEach(function(button)
-{
-    button.addEventListener(
-        "click",
-        function()
-        {
-            const page =
-                button.dataset.page;
-
-
-            openPage(page);
-        }
-    );
-});
-
-
 function openPage(page)
 {
-    const pages =
-        document.querySelectorAll(".page");
-
-
-    pages.forEach(function(pageElement)
+    document.querySelectorAll(".page").forEach(function(element)
     {
-        pageElement.classList.remove(
-            "active-page"
-        );
+        element.classList.remove("active-page");
     });
-
 
     navigationButtons.forEach(function(button)
     {
-        button.classList.remove(
-            "active"
-        );
-
+        button.classList.remove("active");
 
         if (button.dataset.page === page)
         {
-            button.classList.add(
-                "active"
-            );
+            button.classList.add("active");
         }
     });
 
-
     const selectedPage =
-        document.getElementById(
-            page + "Page"
-        );
-
+        document.getElementById(page + "Page");
 
     if (selectedPage)
     {
-        selectedPage.classList.add(
-            "active-page"
-        );
+        selectedPage.classList.add("active-page");
     }
 
-
-    const titles =
-    {
+    const titles = {
         dashboard: "Dashboard",
         rooms: "Rooms",
         departments: "Departments",
@@ -99,94 +51,109 @@ function openPage(page)
         import: "Import Routine"
     };
 
-
-    document.getElementById(
-        "pageTitle"
-    ).textContent =
+    document.getElementById("pageTitle").textContent =
         titles[page] || "RoomSync Admin";
 }
 
 
+navigationButtons.forEach(function(button)
+{
+    button.addEventListener("click", function()
+    {
+        openPage(button.dataset.page);
+    });
+});
+
 
 /* =========================================
-   LOAD ROOM DATA
+   SERVER CONNECTION
    ========================================= */
 
-function loadRooms()
+async function apiRequest(route, method = "GET", body = null)
 {
-    const serverStatus =
-        document.getElementById(
-            "serverStatus"
-        );
-
-
-    fetch(API_BASE + "/rooms")
-
-        .then(function(response)
+    const response = await fetch(
+        API_BASE + route,
         {
-            if (!response.ok)
-            {
-                throw new Error(
-                    "Server error"
-                );
-            }
+            method: method,
+            cache: "no-store",
+            credentials: "include",
 
+            headers: body
+                ? {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+                : {},
 
-            return response.json();
-        })
+            body: body
+        }
+    );
 
+    const result = await response.text();
 
-        .then(function(data)
-        {
-            rooms = data;
+    if (!response.ok)
+    {
+        throw new Error(result || "Server request failed.");
+    }
 
-
-            serverStatus.textContent =
-                "Server Connected";
-
-            serverStatus.className =
-                "server-status online";
-
-
-            updateDashboard();
-
-            displayRooms();
-        })
-
-
-        .catch(function(error)
-        {
-            console.error(
-                "Could not load RoomSync:",
-                error
-            );
-
-
-            serverStatus.textContent =
-                "Server Offline";
-
-            serverStatus.className =
-                "server-status offline";
-
-
-            document.getElementById(
-                "roomsTableBody"
-            ).innerHTML = `
-
-                <tr>
-
-                    <td
-                        colspan="5"
-                        class="table-message"
-                    >
-                        Could not connect to RoomSync server.
-                    </td>
-
-                </tr>
-            `;
-        });
+    return result;
 }
 
+
+/* =========================================
+   LOAD ROOMS FROM DATABASE
+   ========================================= */
+
+async function loadRooms()
+{
+    const serverStatus =
+        document.getElementById("serverStatus");
+
+    try
+    {
+        const result = await apiRequest("/rooms");
+
+        rooms = JSON.parse(result);
+
+        if (!Array.isArray(rooms))
+        {
+            throw new Error("Invalid room data received.");
+        }
+
+        serverStatus.textContent = "Server Connected";
+        serverStatus.className = "server-status online";
+
+        updateDashboard();
+        displayRooms();
+    }
+
+    catch (error)
+    {
+        console.error("RoomSync error:", error);
+
+        serverStatus.textContent = "Server Offline";
+        serverStatus.className = "server-status offline";
+
+        const tableBody =
+            document.getElementById("roomsTableBody");
+
+        tableBody.innerHTML = "";
+
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 5;
+        cell.className = "table-message";
+        cell.textContent = error.message;
+
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+
+        document.getElementById("totalRooms").textContent = "-";
+        document.getElementById("emptyRooms").textContent = "-";
+        document.getElementById("occupiedRooms").textContent = "-";
+        document.getElementById("totalFloors").textContent = "-";
+    }
+}
 
 
 /* =========================================
@@ -196,58 +163,37 @@ function loadRooms()
 function updateDashboard()
 {
     let emptyRooms = 0;
-
     let occupiedRooms = 0;
 
-    const floors =
-        new Set();
-
+    const floors = new Set();
 
     rooms.forEach(function(room)
     {
-        floors.add(
-            room.floor
-        );
-
+        floors.add(room.floor);
 
         if (room.status === "EMPTY")
         {
             emptyRooms++;
         }
 
-        else if (
-            room.status === "OCCUPIED"
-        )
+        else if (room.status === "OCCUPIED")
         {
             occupiedRooms++;
         }
     });
 
-
-    document.getElementById(
-        "totalRooms"
-    ).textContent =
+    document.getElementById("totalRooms").textContent =
         rooms.length;
 
-
-    document.getElementById(
-        "emptyRooms"
-    ).textContent =
+    document.getElementById("emptyRooms").textContent =
         emptyRooms;
 
-
-    document.getElementById(
-        "occupiedRooms"
-    ).textContent =
+    document.getElementById("occupiedRooms").textContent =
         occupiedRooms;
 
-
-    document.getElementById(
-        "totalFloors"
-    ).textContent =
+    document.getElementById("totalFloors").textContent =
         floors.size;
 }
-
 
 
 /* =========================================
@@ -257,139 +203,395 @@ function updateDashboard()
 function displayRooms()
 {
     const tableBody =
-        document.getElementById(
-            "roomsTableBody"
-        );
-
+        document.getElementById("roomsTableBody");
 
     tableBody.innerHTML = "";
 
-
     if (rooms.length === 0)
     {
-        tableBody.innerHTML = `
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
 
-            <tr>
+        cell.colSpan = 5;
+        cell.className = "table-message";
+        cell.textContent = "No rooms registered.";
 
-                <td
-                    colspan="5"
-                    class="table-message"
-                >
-                    No rooms are currently registered.
-                </td>
-
-            </tr>
-        `;
-
+        row.appendChild(cell);
+        tableBody.appendChild(row);
 
         return;
     }
 
-
     rooms.forEach(function(room)
     {
-        const row =
-            document.createElement("tr");
+        const roomNumber =
+            room.room_number || room["room number"];
 
+        const row = document.createElement("tr");
 
-        const statusClass =
+        const nameCell = document.createElement("td");
+        nameCell.className = "room-name";
+        nameCell.textContent = "Room " + roomNumber;
+
+        const floorCell = document.createElement("td");
+        floorCell.textContent = room.floor;
+
+        const capacityCell = document.createElement("td");
+        capacityCell.textContent = room.capacity;
+
+        const statusCell = document.createElement("td");
+
+        const statusBadge = document.createElement("span");
+
+        statusBadge.className =
             room.status === "EMPTY"
-                ? "status-empty"
-                : "status-occupied";
+                ? "status-badge status-empty"
+                : "status-badge status-occupied";
 
+        statusBadge.textContent = room.status || "UNKNOWN";
 
-        row.innerHTML = `
+        statusCell.appendChild(statusBadge);
 
-            <td class="room-name">
-                Room ${room.room_number}
-            </td>
+        const actionCell = document.createElement("td");
 
+        const editButton = document.createElement("button");
 
-            <td>
-                ${room.floor}
-            </td>
+        editButton.className = "action-button";
+        editButton.textContent = "Edit";
 
+        editButton.addEventListener("click", function()
+        {
+            editRoom(roomNumber);
+        });
 
-            <td>
-                ${room.capacity}
-            </td>
+        const deleteButton = document.createElement("button");
 
+        deleteButton.className = "action-button";
+        deleteButton.textContent = "Delete";
+        deleteButton.style.marginLeft = "6px";
 
-            <td>
+        deleteButton.addEventListener("click", function()
+        {
+            deleteRoom(roomNumber);
+        });
 
-                <span
-                    class="
-                        status-badge
-                        ${statusClass}
-                    "
-                >
-                    ${room.status}
-                </span>
+        actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
 
-            </td>
+        row.appendChild(nameCell);
+        row.appendChild(floorCell);
+        row.appendChild(capacityCell);
+        row.appendChild(statusCell);
+        row.appendChild(actionCell);
 
-
-            <td>
-
-                <button
-                    class="action-button"
-                    onclick="
-                        editRoom(
-                            '${room.room_number}'
-                        )
-                    "
-                >
-                    Edit
-                </button>
-
-            </td>
-        `;
-
-
-        tableBody.appendChild(
-            row
-        );
+        tableBody.appendChild(row);
     });
 }
 
 
-
 /* =========================================
-   FUTURE ROOM FUNCTIONS
+   VALIDATE ROOM INPUT
    ========================================= */
 
-function editRoom(roomNumber)
+function validRoomInput(room, floor, capacity)
 {
-    alert(
-        "Room editing will be connected next.\n\n" +
-        "Selected Room: " +
-        roomNumber
-    );
+    if (!room || !room.trim())
+    {
+        alert("Enter a valid room number.");
+        return false;
+    }
+
+    if (!Number.isInteger(floor) || floor <= 0)
+    {
+        alert("Floor must be a positive whole number.");
+        return false;
+    }
+
+    if (!Number.isInteger(capacity) || capacity <= 0)
+    {
+        alert("Capacity must be a positive whole number.");
+        return false;
+    }
+
+    return true;
 }
 
 
-document.getElementById(
-    "addRoomButton"
-).addEventListener(
-    "click",
-    function()
-    {
-        alert(
-            "Add Room will be connected to SQLite next."
-        );
-    }
-);
+/* =========================================
+   ADD ROOM
+   ========================================= */
 
+async function addRoom()
+{
+    const room = prompt("Enter room number (e.g. ICT101):");
+
+    if (room === null) return;
+
+    const buildingInput = prompt("Enter building (ICT / CME / CB):");
+
+    if (buildingInput === null) return;
+
+    const building = buildingInput.trim().toUpperCase();
+
+    if (!["ICT", "CME", "CB"].includes(building))
+    {
+        alert("Invalid building. Enter ICT, CME or CB.");
+        return;
+    }
+
+    const floorInput = prompt("Enter floor number:");
+
+    if (floorInput === null) return;
+
+    const capacityInput = prompt("Enter room capacity:");
+
+    if (capacityInput === null) return;
+
+    const floor = Number(floorInput);
+    const capacity = Number(capacityInput);
+
+    if (!validRoomInput(room, floor, capacity))
+    {
+        return;
+    }
+
+    try
+    {
+        const params = new URLSearchParams({
+            room: room.trim(),
+            building: building,
+            floor: floor,
+            capacity: capacity
+        });
+
+        const message = await apiRequest(
+            "/room-add",
+            "POST",
+            params
+        );
+
+        alert(message);
+
+        await loadRooms();
+    }
+    catch (error)
+    {
+        alert("Could not add room: " + error.message);
+    }
+}
+
+/* =========================================
+   EDIT ROOM
+   ========================================= */
+
+async function editRoom(oldRoom)
+{
+    const existingRoom = rooms.find(function(room)
+    {
+        return String(room.room_number || room["room number"]) ===
+            String(oldRoom);
+    });
+
+    if (!existingRoom) return;
+
+    const newRoom = prompt(
+        "Enter new room number:",
+        oldRoom
+    );
+
+    if (newRoom === null) return;
+
+    const buildingInput = prompt(
+        "Enter building (ICT / CME / CB):",
+        existingRoom.building || ""
+    );
+
+    if (buildingInput === null) return;
+
+    const building = buildingInput.trim().toUpperCase();
+
+    if (!["ICT", "CME", "CB"].includes(building))
+    {
+        alert("Invalid building. Enter ICT, CME or CB.");
+        return;
+    }
+
+    const floorInput = prompt(
+        "Enter floor:",
+        existingRoom.floor
+    );
+
+    if (floorInput === null) return;
+
+    const capacityInput = prompt(
+        "Enter capacity:",
+        existingRoom.capacity
+    );
+
+    if (capacityInput === null) return;
+
+    const floor = Number(floorInput);
+    const capacity = Number(capacityInput);
+
+    if (!validRoomInput(newRoom, floor, capacity))
+    {
+        return;
+    }
+
+    try
+    {
+        const params = new URLSearchParams({
+            old: oldRoom,
+            room: newRoom.trim(),
+            building: building,
+            floor: floor,
+            capacity: capacity
+        });
+
+        const message = await apiRequest(
+            "/room-edit",
+            "POST",
+            params
+        );
+
+        alert(message);
+
+        await loadRooms();
+    }
+    catch (error)
+    {
+        alert("Could not edit room: " + error.message);
+    }
+}
+
+/* =========================================
+   DELETE ROOM
+   ========================================= */
+
+async function deleteRoom(roomNumber)
+{
+    const confirmed = confirm(
+        "Are you sure you want to delete Room " +
+        roomNumber + "?"
+    );
+
+    if (!confirmed) return;
+
+    try
+    {
+        const params = new URLSearchParams({
+            room: roomNumber
+        });
+
+        const message = await apiRequest(
+            "/room-delete",
+            "POST",
+            params
+        );
+
+        alert(message);
+
+        await loadRooms();
+    }
+    catch (error)
+    {
+        alert("Could not delete room: " + error.message);
+    }
+}
+
+
+/* =========================================
+   BUTTON EVENTS
+   ========================================= */
+
+document.getElementById("addRoomButton")
+    .addEventListener("click", addRoom);
 
 
 /* =========================================
    INITIAL LOAD
    ========================================= */
 
-window.addEventListener(
-    "load",
-    function()
+window.addEventListener("load", function()
+{
+    checkAdminSession();
+});
+
+/* =========================================
+   ADMIN LOGIN
+   ========================================= */
+
+const loginScreen = document.getElementById("loginScreen");
+
+const adminLoginForm = document.getElementById("adminLoginForm");
+
+
+adminLoginForm.addEventListener("submit", async function(event)
+{
+    event.preventDefault();
+
+    const username = document.getElementById("adminUsername").value;
+    const password = document.getElementById("adminPassword").value;
+
+    const message = document.getElementById("loginMessage");
+
+    message.textContent = "Logging in...";
+
+    try
     {
+        const body = new URLSearchParams({
+            username: username,
+            password: password
+        });
+
+        const result = await apiRequest(
+            "/login",
+            "POST",
+            body
+        );
+
+        const data = JSON.parse(result);
+
+        if (data.role !== "ADMIN")
+        {
+            throw new Error("Admin access only.");
+        }
+
+        loginScreen.style.display = "none";
+
         loadRooms();
     }
-);
+    catch (error)
+    {
+        message.textContent = error.message;
+    }
+});
+
+
+/* =========================================
+   CHECK EXISTING SESSION
+   ========================================= */
+
+async function checkAdminSession()
+{
+    try
+    {
+        const result = await apiRequest("/session");
+
+        const data = JSON.parse(result);
+
+        if (data.authenticated && data.role === "ADMIN")
+        {
+            loginScreen.style.display = "none";
+            loadRooms();
+        }
+        else
+        {
+            loginScreen.style.display = "flex";
+        }
+    }
+    catch (error)
+    {
+        loginScreen.style.display = "flex";
+    }
+}
