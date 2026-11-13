@@ -19,41 +19,73 @@
 
 <body>
 
-    <!-- FLOOR MANAGER LOGIN -->
-<div id="loginScreen" class="login-screen">
 
+<!-- FLOOR MANAGER LOGIN -->
+<div id="loginScreen" class="login-screen">
     <div class="login-box">
 
         <h1>RoomSync</h1>
-        <h2>Floor Manager Login</h2>
 
-        <form id="managerLoginForm">
+        <!-- NORMAL LOGIN -->
+        <div id="managerLoginSection">
+            <h2>Floor Manager Login</h2>
 
-            <input
-                type="text"
-                id="managerUsername"
-                placeholder="Username"
-                required
-            >
+            <form id="managerLoginForm">
+                <input
+                    type="text"
+                    id="managerUsername"
+                    placeholder="Username"
+                    required
+                >
 
-            <input
-                type="password"
-                id="managerPassword"
-                placeholder="Password"
-                required
-            >
+                <input
+                    type="password"
+                    id="managerPassword"
+                    placeholder="Password"
+                    required
+                >
 
-            <button type="submit">
-                Login
-            </button>
+                <button type="submit">Login</button>
+                <p id="loginMessage"></p>
+            </form>
+        </div>
 
-            <p id="loginMessage"></p>
+        <!-- CHANGE PASSWORD -->
+        <div id="managerPasswordSection" style="display:none;">
+            <h2>Change Your Password</h2>
 
-        </form>
+            <p>You must change your temporary password before continuing.</p>
+
+            <form id="managerPasswordForm">
+                <input
+                    type="password"
+                    id="currentManagerPassword"
+                    placeholder="Temporary Password"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="newManagerPassword"
+                    placeholder="New Password"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="confirmManagerPassword"
+                    placeholder="Confirm New Password"
+                    required
+                >
+
+                <button type="submit">Update Password</button>
+                <p id="passwordChangeMessage"></p>
+            </form>
+        </div>
 
     </div>
-
 </div>
+
 
     <!-- =====================================
          NAVBAR
@@ -245,7 +277,12 @@
 
                 based entirely on SQLite.
             -->
-
+            <div class="room-management-header">
+    <h3>Manage Rooms</h3>
+    <button id="addRoomButton" class="manage-button">
+        + Add Room
+    </button>
+</div>
             <div id="floorsContainer">
 
                 <div class="loading-state">

@@ -526,21 +526,61 @@
                 class="page"
             >
 
-                <div class="placeholder">
 
-                    <span>FLOOR MANAGERS</span>
+<div class="manager-management">
 
-                    <h2>
-                        Floor Manager Accounts
-                    </h2>
+    <div class="manager-form-card">
 
-                    <p>
-                        This module will control
-                        Floor Manager access and
-                        floor assignments.
-                    </p>
+        <h2>Create Floor Manager</h2>
 
-                </div>
+        <p>Create an account and assign the manager to a building and floors.</p>
+
+        <form id="managerCreateForm">
+
+            <label for="newManagerUsername">Username</label>
+            <input
+                type="text"
+                id="newManagerUsername"
+                placeholder="Enter username"
+                required
+            >
+
+            <label for="newManagerPassword">Temporary Password</label>
+            <input
+                type="password"
+                id="newManagerPassword"
+                placeholder="Enter temporary password"
+                required
+            >
+
+            <label for="managerBuilding">Building</label>
+            <select id="managerBuilding" required>
+                <option value="">Select building</option>
+                <option value="ICT">ICT</option>
+                <option value="CME">CME</option>
+                <option value="CB">CB</option>
+            </select>
+
+            <label for="managerFloors">Assigned Floors</label>
+            <input
+                type="text"
+                id="managerFloors"
+                placeholder="Example: 1,2"
+                required
+            >
+
+            <button type="submit">
+                Create Manager Account
+            </button>
+
+            <p id="managerCreateMessage"></p>
+
+        </form>
+
+    </div>
+
+</div>
+
 
             </section>
 

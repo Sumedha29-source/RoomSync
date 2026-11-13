@@ -761,6 +761,7 @@ int main(void)
         char room[64];
         char oldRoom[64];
         char building[16];
+        char occupancyText[20];
 
         char floorText[16];
         char capacityText[16];
@@ -773,6 +774,7 @@ int main(void)
 
         int floor;
         int capacity;
+        int occupancy;
 
         int clientAddressSize = sizeof(clientAddress);
 
@@ -1289,11 +1291,19 @@ int main(void)
             else if (!getFormValue(body, "room",
                                    room, sizeof(room)) ||
                      !getFormValue(body, "status",
-                                   role, sizeof(role)))
+                                   role, sizeof(role)) ||
+                     !getFormValue(body, "occupancy",
+                                   occupancyText, sizeof(occupancyText)))
             {
                 sendText(clientSocket, request,
                          400, "Bad Request",
-                         "Room and status are required.");
+                         "Room, status and occupancy are required.");
+            }
+            else if (!parsePositiveInt(occupancyText, &occupancy))
+            {
+                sendText(clientSocket, request,
+                         400, "Bad Request",
+                         "Occupancy must be a valid non-negative number.");
             }
             else if (!managerCanManageRoom(db, session, room))
             {
@@ -1301,17 +1311,17 @@ int main(void)
                          403, "Forbidden",
                          "You do not have permission to update this room.");
             }
-            else if (updateRoomStatus(db, room, role))
+            else if (updateRoomStatus(db, room, role, occupancy))
             {
                 sendText(clientSocket, request,
                          200, "OK",
-                         "Room status updated successfully.");
+                         "Room status and occupancy updated successfully.");
             }
             else
             {
                 sendText(clientSocket, request,
                          400, "Bad Request",
-                         "Could not update room status. Check the room and status.");
+                         "Update failed. Check status, occupancy and room capacity.");
             }
         }
 

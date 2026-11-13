@@ -32,7 +32,8 @@ int getAvailableRoomsJSON(
 int updateRoomStatus(
     sqlite3 *db,
     const char *roomName,
-    const char *status
+    const char *status,
+    int occupancy
 );
 
 /* Room management */

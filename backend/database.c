@@ -347,6 +347,8 @@ int getAllRoomsJSON(sqlite3 *db,
    MANAGER ASSIGNED ROOMS
    ========================================= */
 
+
+
 int getManagerRoomsJSON(sqlite3 *db,
                          const char *username,
                          char *output,
@@ -356,7 +358,8 @@ int getManagerRoomsJSON(sqlite3 *db,
 
     const char *sql =
         "SELECT r.room_number, r.building, r.floor, "
-        "r.capacity, r.status "
+        "r.capacity, r.status, "
+        "r.current_occupancy, r.status_updated_at "
         "FROM rooms r "
         "INNER JOIN manager_assignments m "
         "ON r.building = m.building "
@@ -389,6 +392,11 @@ int getManagerRoomsJSON(sqlite3 *db,
         const char *status =
             (const char *)sqlite3_column_text(stmt, 4);
 
+        const char *updatedAt =
+            (const char *)sqlite3_column_text(stmt, 6);
+
+        int written;
+
         if (!first)
         {
             if (used >= outputSize - 1)
@@ -401,20 +409,70 @@ int getManagerRoomsJSON(sqlite3 *db,
             output[used] = '\0';
         }
 
-        if (!appendJSON(
-            output, outputSize, &used,
+        written = snprintf(
+            output + used,
+            (size_t)(outputSize - used),
             "{\"room_number\":\"%s\",\"building\":\"%s\","
-            "\"floor\":%d,\"capacity\":%d,\"status\":\"%s\"}",
+            "\"floor\":%d,\"capacity\":%d,\"status\":\"%s\","
+            "\"current_occupancy\":",
             room ? room : "",
             building ? building : "",
             sqlite3_column_int(stmt, 2),
             sqlite3_column_int(stmt, 3),
-            status ? status : "EMPTY"))
+            status ? status : "EMPTY"
+        );
+
+        if (written < 0 || written >= outputSize - used)
         {
             sqlite3_finalize(stmt);
             return 0;
         }
 
+        used += written;
+
+        if (sqlite3_column_type(stmt, 5) == SQLITE_NULL)
+        {
+            written = snprintf(output + used,
+                               (size_t)(outputSize - used),
+                               "null");
+        }
+        else
+        {
+            written = snprintf(output + used,
+                               (size_t)(outputSize - used),
+                               "%d",
+                               sqlite3_column_int(stmt, 5));
+        }
+
+        if (written < 0 || written >= outputSize - used)
+        {
+            sqlite3_finalize(stmt);
+            return 0;
+        }
+
+        used += written;
+
+        if (sqlite3_column_type(stmt, 6) == SQLITE_NULL)
+        {
+            written = snprintf(output + used,
+                               (size_t)(outputSize - used),
+                               ",\"status_updated_at\":null}");
+        }
+        else
+        {
+            written = snprintf(output + used,
+                               (size_t)(outputSize - used),
+                               ",\"status_updated_at\":\"%s\"}",
+                               updatedAt ? updatedAt : "");
+        }
+
+        if (written < 0 || written >= outputSize - used)
+        {
+            sqlite3_finalize(stmt);
+            return 0;
+        }
+
+        used += written;
         first = 0;
     }
 
@@ -432,10 +490,10 @@ int getManagerRoomsJSON(sqlite3 *db,
     return 1;
 }
 
-
 /* =========================================
    AVAILABLE ROOMS
    ========================================= */
+
 
 int getAvailableRoomsJSON(sqlite3 *db,
                           const char *day,
@@ -447,16 +505,29 @@ int getAvailableRoomsJSON(sqlite3 *db,
     sqlite3_stmt *stmt = NULL;
 
     const char *sql =
-        "SELECT room_number, building, floor, capacity "
-        "FROM rooms "
-        "WHERE status = 'EMPTY' "
-        "AND room_id NOT IN ("
-        "SELECT room_id FROM routines "
-        "WHERE day = ? AND start_time < ? AND end_time > ?"
-        ") "
-        "ORDER BY building, floor, room_number;";
+        "SELECT "
+        "r.room_number, "
+        "r.building, "
+        "r.floor, "
+        "r.capacity, "
+        "CASE WHEN EXISTS ("
+        "SELECT 1 FROM routines t "
+        "WHERE t.room_id = r.room_id "
+        "AND t.day = ? "
+        "AND t.start_time < ? "
+        "AND t.end_time > ?"
+        ") THEN 'OCCUPIED' ELSE 'EMPTY' END, "
+        "CASE WHEN r.status_updated_at IS NULL "
+        "OR r.current_occupancy IS NULL "
+        "THEN 'NOT_CHECKED' ELSE r.status END, "
+        "r.current_occupancy, "
+        "r.status_updated_at "
+        "FROM rooms r "
+        "ORDER BY r.building, r.floor, r.room_number;";
 
-    int rc, used = 1, first = 1;
+    int rc;
+    int used = 1;
+    int first = 1;
 
     if (!output || outputSize < 3)
         return 0;
@@ -480,7 +551,42 @@ int getAvailableRoomsJSON(sqlite3 *db,
         const char *building =
             (const char *)sqlite3_column_text(stmt, 1);
 
-        if (!first)
+        const char *expectedStatus =
+            (const char *)sqlite3_column_text(stmt, 4);
+
+        const char *actualStatus =
+            (const char *)sqlite3_column_text(stmt, 5);
+
+        const char *checkedAt =
+            (const char *)sqlite3_column_text(stmt, 7);
+
+        char roomJSON[1024];
+
+        int floor = sqlite3_column_int(stmt, 2);
+        int capacity = sqlite3_column_int(stmt, 3);
+
+        int occupancyIsNull =
+            sqlite3_column_type(stmt, 6) == SQLITE_NULL;
+
+        int timestampIsNull =
+            sqlite3_column_type(stmt, 7) == SQLITE_NULL;
+
+        int occupancy =
+            occupancyIsNull ? 0 : sqlite3_column_int(stmt, 6);
+
+        int written;
+
+        if (!room || !expectedStatus || !actualStatus)
+        {
+            sqlite3_finalize(stmt);
+            return 0;
+        }
+
+        if (first)
+        {
+            first = 0;
+        }
+        else
         {
             if (used >= outputSize - 1)
             {
@@ -492,21 +598,75 @@ int getAvailableRoomsJSON(sqlite3 *db,
             output[used] = '\0';
         }
 
-        if (!appendJSON(
-            output, outputSize, &used,
-            "{\"room_number\":\"%s\",\"building\":\"%s\","
-            "\"floor\":%d,\"capacity\":%d,\"status\":\"EMPTY\"}",
-            room ? room : "",
-            building ? building : "",
-            sqlite3_column_int(stmt, 2),
-            sqlite3_column_int(stmt, 3),
-            "EMPTY"))
+        if (occupancyIsNull)
+        {
+            written = snprintf(
+                roomJSON, sizeof(roomJSON),
+                "{\"room_number\":\"%s\",\"building\":\"%s\","
+                "\"floor\":%d,\"capacity\":%d,"
+                "\"expected_status\":\"%s\","
+                "\"status\":\"%s\","
+                "\"current_occupancy\":null,"
+                "\"status_updated_at\":null}",
+                room,
+                building ? building : "",
+                floor,
+                capacity,
+                expectedStatus,
+                actualStatus
+            );
+        }
+        else if (timestampIsNull)
+        {
+            written = snprintf(
+                roomJSON, sizeof(roomJSON),
+                "{\"room_number\":\"%s\",\"building\":\"%s\","
+                "\"floor\":%d,\"capacity\":%d,"
+                "\"expected_status\":\"%s\","
+                "\"status\":\"%s\","
+                "\"current_occupancy\":%d,"
+                "\"status_updated_at\":null}",
+                room,
+                building ? building : "",
+                floor,
+                capacity,
+                expectedStatus,
+                actualStatus,
+                occupancy
+            );
+        }
+        else
+        {
+            written = snprintf(
+                roomJSON, sizeof(roomJSON),
+                "{\"room_number\":\"%s\",\"building\":\"%s\","
+                "\"floor\":%d,\"capacity\":%d,"
+                "\"expected_status\":\"%s\","
+                "\"status\":\"%s\","
+                "\"current_occupancy\":%d,"
+                "\"status_updated_at\":\"%s\"}",
+                room,
+                building ? building : "",
+                floor,
+                capacity,
+                expectedStatus,
+                actualStatus,
+                occupancy,
+                checkedAt ? checkedAt : ""
+            );
+        }
+
+        if (written < 0 ||
+            written >= (int)sizeof(roomJSON) ||
+            written >= outputSize - used)
         {
             sqlite3_finalize(stmt);
             return 0;
         }
 
-        first = 0;
+        memcpy(output + used, roomJSON, written);
+        used += written;
+        output[used] = '\0';
     }
 
     if (rc != SQLITE_DONE || used >= outputSize - 1)
@@ -523,24 +683,36 @@ int getAvailableRoomsJSON(sqlite3 *db,
     return 1;
 }
 
+
 /* =========================================
    UPDATE ROOM STATUS
    ========================================= */
 
+
 int updateRoomStatus(sqlite3 *db,
                      const char *roomName,
-                     const char *status)
+                     const char *status,
+                     int occupancy)
 {
     sqlite3_stmt *stmt = NULL;
 
     const char *sql =
-        "UPDATE rooms SET status = ?, "
+        "UPDATE rooms SET "
+        "status = ?, "
+        "current_occupancy = ?, "
         "status_updated_at = datetime('now') "
-        "WHERE room_number = ?;";
+        "WHERE room_number = ? "
+        "AND capacity >= ?;";
 
-    if (!roomName || !status ||
-        (strcmp(status, "EMPTY") != 0 &&
-         strcmp(status, "OCCUPIED") != 0))
+    if (!roomName || !status || occupancy < 0)
+        return 0;
+
+    if (strcmp(status, "EMPTY") != 0 &&
+        strcmp(status, "OCCUPIED") != 0)
+        return 0;
+
+    if ((strcmp(status, "EMPTY") == 0 && occupancy != 0) ||
+        (strcmp(status, "OCCUPIED") == 0 && occupancy == 0))
         return 0;
 
     if (sqlite3_prepare_v2(db, sql, -1,
@@ -548,7 +720,9 @@ int updateRoomStatus(sqlite3 *db,
         return 0;
 
     sqlite3_bind_text(stmt, 1, status, -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 2, roomName, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, occupancy);
+    sqlite3_bind_text(stmt, 3, roomName, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 4, occupancy);
 
     int rc = sqlite3_step(stmt);
     int changed = sqlite3_changes(db);

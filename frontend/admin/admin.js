@@ -595,3 +595,50 @@ async function checkAdminSession()
         loginScreen.style.display = "flex";
     }
 }
+
+/* =========================================
+   CREATE FLOOR MANAGER
+   ========================================= */
+
+const managerCreateForm = document.getElementById("managerCreateForm");
+
+managerCreateForm.addEventListener("submit", async function(event)
+{
+    event.preventDefault();
+
+    const message = document.getElementById("managerCreateMessage");
+
+    const username = document.getElementById("newManagerUsername").value.trim();
+    const password = document.getElementById("newManagerPassword").value;
+    const building = document.getElementById("managerBuilding").value;
+    const floors = document.getElementById("managerFloors").value.trim();
+
+    message.style.color = "blue";
+    message.textContent = "Creating account...";
+
+    try
+    {
+        const params = new URLSearchParams({
+            username: username,
+            password: password,
+            building: building,
+            floors: floors
+        });
+
+        const result = await apiRequest(
+            "/manager-create",
+            "POST",
+            params
+        );
+
+        message.style.color = "green";
+        message.textContent = result;
+
+        managerCreateForm.reset();
+    }
+    catch(error)
+    {
+        message.style.color = "red";
+        message.textContent = error.message;
+    }
+});

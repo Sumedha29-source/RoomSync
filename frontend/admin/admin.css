@@ -833,3 +833,64 @@ tbody tr:last-child td {
     margin-top: 12px;
     color: red;
 }
+
+/* FLOOR MANAGER ACCOUNT FORM */
+
+.manager-management {
+    display: flex;
+    justify-content: center;
+    padding: 35px;
+}
+
+.manager-form-card {
+    background: white;
+    width: 100%;
+    max-width: 600px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.manager-form-card h2 {
+    margin-bottom: 10px;
+}
+
+.manager-form-card p {
+    color: #718096;
+    margin-bottom: 22px;
+}
+
+.manager-form-card label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+}
+
+.manager-form-card input,
+.manager-form-card select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.manager-form-card button {
+    width: 100%;
+    padding: 13px;
+    background: #3158d5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.manager-form-card button:hover {
+    background: #2446b5;
+}
+
+#managerCreateMessage {
+    margin-top: 15px;
+}
