@@ -301,9 +301,9 @@ function validRoomInput(room, floor, capacity)
         return false;
     }
 
-    if (!Number.isInteger(floor) || floor <= 0)
+    if (!Number.isInteger(floor) || floor < 0)
     {
-        alert("Floor must be a positive whole number.");
+        alert("Floor must be a non-negative whole number (0 or above).");
         return false;
     }
 

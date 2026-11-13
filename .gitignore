@@ -10,3 +10,32 @@
 
 # Temporary files
 *.tmp
+
+# Backup source files
+*_backup.c
+*_backup.h
+*_old.c
+* - Copy_backup.c
+* - Copy_backup.h
+
+# Generated timetable extraction data
+__pycache__/
+*.pyc
+# Generated timetable extraction output
+timetable_extraction/
+
+# Generated candidate and audit files
+*_candidates*.csv
+timetable_candidates.csv
+timetable_unverified.csv
+page_inventory.csv
+layout_summary.txt
+pdf08_coordinate_audit.csv
+
+# Database Browser project
+*.sqbpro
+
+# Backup files
+*_backup.c
+*_backup.h
+*_old.c

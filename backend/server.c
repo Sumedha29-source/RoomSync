@@ -10,8 +10,8 @@
 
 #define PORT 8080
 #define REQUEST_SIZE 16384
-#define RESPONSE_SIZE 16384
-#define JSON_SIZE 8192
+#define RESPONSE_SIZE 70000
+#define JSON_SIZE 65536
 #define MAX_SESSIONS 100
 
 /* =========================================

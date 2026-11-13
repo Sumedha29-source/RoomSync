@@ -759,10 +759,10 @@ async function addRoom()
     const floor = Number(floorInput);
     const capacity = Number(capacityInput);
 
-    if (!room.trim() || !Number.isInteger(floor) || floor <= 0 ||
+    if (!room.trim() || !Number.isInteger(floor) || floor < 0 ||
         !Number.isInteger(capacity) || capacity <= 0)
     {
-        alert("Enter a valid room number, positive floor and capacity.");
+        alert("Enter a valid room number, valid floor (0 or above) and positive capacity.");
         return;
     }
 
@@ -822,10 +822,10 @@ async function editRoom(oldRoom)
     const floor = Number(floorInput);
     const capacity = Number(capacityInput);
 
-    if (!newRoom.trim() || !Number.isInteger(floor) || floor <= 0 ||
+    if (!newRoom.trim() || !Number.isInteger(floor) || floor < 0 ||
         !Number.isInteger(capacity) || capacity <= 0)
     {
-        alert("Enter a valid room number, positive floor and capacity.");
+        alert("Enter a valid room number, valid floor (0 or above) and positive capacity.");
         return;
     }
 

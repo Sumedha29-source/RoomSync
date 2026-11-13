@@ -105,7 +105,15 @@ searchButton.addEventListener(
         const url =
             "http://localhost:8080/available-rooms" +
             "?day=" +
-            encodeURIComponent(day) +
+            encodeURIComponent({
+    Monday: "MON",
+    Tuesday: "TUE",
+    Wednesday: "WED",
+    Thursday: "THU",
+    Friday: "FRI",
+    Saturday: "SAT",
+    Sunday: "SUN"
+}[day] || day.toUpperCase()) +
 
             "&start=" +
             encodeURIComponent(startTime) +
@@ -135,9 +143,18 @@ searchButton.addEventListener(
 
 
             .then(function (rooms)
-            {
-                displayRooms(rooms);
-            })
+{
+    console.log("API rooms:", rooms.length);
+    console.log("CME408:", rooms.find(r => r.room_number === "CME408"));
+
+    const availableRooms = rooms.filter(function (room) {
+        return String(room.expected_status).trim().toUpperCase() === "EMPTY";
+    });
+
+    console.log("Available rooms:", availableRooms.length);
+
+    displayRooms(availableRooms);
+})
 
 
             .catch(function (error)
@@ -217,7 +234,11 @@ function displayRooms(rooms)
 
     roomResults.className = "room-grid";
 
-    rooms.forEach(function (room)
+    rooms
+    .filter(function (room) {
+        return room.expected_status === "EMPTY";
+    })
+    .forEach(function (room)
     {
         const roomCard = document.createElement("div");
 
@@ -268,7 +289,7 @@ function displayRooms(rooms)
         roomCard.innerHTML = `
             <div class="room-status">
                 <span class="status-dot"></span>
-                ROOM ${room.room_number}
+                 ROOM ${room.room_number} — ${expectedLabel.toUpperCase()}
             </div>
 
             <h3>Room ${room.room_number}</h3>
@@ -292,7 +313,7 @@ function displayRooms(rooms)
 
             <div class="room-details">
                 <div class="room-detail">
-                    <span>Expected (Routine)</span>
+                    <span>ROUTINE STATUS</span>
                     <strong>${expectedLabel}</strong>
                 </div>
 
