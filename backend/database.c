@@ -10,6 +10,75 @@
 #define SALT_SIZE 16
 #define HASH_SIZE 32
 #define ITERATIONS 120000
+static void timeToMinutes(
+    sqlite3_context *context,
+    int argc,
+    sqlite3_value **argv)
+{
+    const char *value;
+    int hour, minute;
+    char suffix[3] = "";
+
+    if (argc != 1 || sqlite3_value_type(argv[0]) == SQLITE_NULL)
+    {
+        sqlite3_result_null(context);
+        return;
+    }
+
+    value = (const char *)sqlite3_value_text(argv[0]);
+
+    if (!value || sscanf(value, " %d:%d %2s",
+                         &hour, &minute, suffix) < 2)
+    {
+        sqlite3_result_null(context);
+        return;
+    }
+
+    for (int i = 0; suffix[i]; i++)
+        suffix[i] = (char)toupper((unsigned char)suffix[i]);
+
+    if (minute < 0 || minute > 59)
+    {
+        sqlite3_result_null(context);
+        return;
+    }
+
+    if (strcmp(suffix, "AM") == 0)
+    {
+        if (hour < 1 || hour > 12)
+        {
+            sqlite3_result_null(context);
+            return;
+        }
+
+        hour %= 12;
+    }
+    else if (strcmp(suffix, "PM") == 0)
+    {
+        if (hour < 1 || hour > 12)
+        {
+            sqlite3_result_null(context);
+            return;
+        }
+
+        hour = (hour % 12) + 12;
+    }
+    else if (suffix[0] == '\0')
+    {
+        if (hour < 0 || hour > 23)
+        {
+            sqlite3_result_null(context);
+            return;
+        }
+    }
+    else
+    {
+        sqlite3_result_null(context);
+        return;
+    }
+
+    sqlite3_result_int(context, hour * 60 + minute);
+}
 
 /* =========================================
    GENERAL HELPERS
@@ -514,8 +583,8 @@ int getAvailableRoomsJSON(sqlite3 *db,
         "SELECT 1 FROM routines t "
         "WHERE t.room_id = r.room_id "
         "AND t.day = ? "
-        "AND t.start_time < ? "
-        "AND t.end_time > ?"
+        "AND time_to_minutes(t.start_time) < time_to_minutes(?) "
+        "AND time_to_minutes(t.end_time) > time_to_minutes(?)"
         ") THEN 'OCCUPIED' ELSE 'EMPTY' END, "
         "CASE WHEN r.status_updated_at IS NULL "
         "OR r.current_occupancy IS NULL "
@@ -531,6 +600,19 @@ int getAvailableRoomsJSON(sqlite3 *db,
 
     if (!output || outputSize < 3)
         return 0;
+
+    if (sqlite3_create_function(
+        db,
+        "time_to_minutes",
+        1,
+        SQLITE_UTF8,
+        NULL,
+        timeToMinutes,
+        NULL,
+        NULL) != SQLITE_OK)
+{
+    return 0;
+}
 
     if (sqlite3_prepare_v2(db, sql, -1,
                            &stmt, NULL) != SQLITE_OK)
